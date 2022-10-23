@@ -1,0 +1,22 @@
+
+service:
+    container_name: all_env
+    image: all_env:latest
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Seoul
+      - DEFAULT_PASSWD=cjcho
+      - RSTUDIO_PASSWD=cjcho
+   # volumes:
+      #- /docker_img/all_env:/home/rstudio
+      #- /docker_img/all_env/r_packages:/home/rstudio/r_packages
+      #- /docker_img/all_env/mount:/home/rstudio/data
+      #- /docker_img/all_env/apps:/home/rstudio/shiny
+      #- /docker_img/all_env/logs:/home/rstudio/shiny_log
+    ports:
+      - "20015:8889"
+      - "20014:8888"
+      - "20013:8787"
+      - "20012:3838"
+
+

@@ -1,0 +1,6 @@
+env/*
+log/*
+mount/*
+r_packages/*
+shiny/*
+shiny/logs/*
