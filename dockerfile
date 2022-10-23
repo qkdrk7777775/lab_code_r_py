@@ -48,7 +48,7 @@ RUN conda update -n base -c defaults conda --quiet --yes
 
 ## create condaenv
 RUN conda create -n "${DEFAULT_USER}" python=3.9 -y 
-RUN echo "conda activate $DEFAULT_USER}" >> ~/.bashrc
+RUN echo "conda activate ${DEFAULT_USER}" >> ~/.bashrc
 
 RUN conda activate ${DEFAULT_USER} && \
 	 conda install ipykernel jupyterlab jupyter --quiet --yes && \ 
@@ -116,5 +116,35 @@ RUN  echo . /opt/conda/etc/profile.d/conda.sh >>/home/${DEFAULT_USER}/.bashrc &&
 	echo R_LIBS_USER="/home/cysics/r_packages/site-library" >> /home/${DEFAULT_USER}/.Renviron && \
 	source /home/${DEFAULT_USER}/.bashrc
 
-#CMD  [ "/bin/bash","-c", "/usr/lib/rstudio-server/bin/rserver --server-daemonize=0 & /opt/conda/envs/${DEFAULT_USER}/bin/jupyter notebook & /usr/bin/shiny-server & code-server"]
-#CMD ["/bin/bash", "-c", "conda", "/usr/lib/rstudio-server/bin/rserver --server-demonize=0 & /usr/bin/shiny-server & code-server"]
+
+ #package install 
+RUN apt-get install --reinstall build-essential -y && \
+	apt-get install libxml2-dev   libcurl4-openssl-dev   gdal-bin proj-bin libgdal-dev libproj-dev   \
+	default-jre default-jdk    libpcre2-dev libbz2-dev zlib1g-dev    libfontconfig1-dev \
+	libharfbuzz-dev libfribidi-dev     zlib1g-dev -y 
+RUN R CMD javareconf -n
+
+RUN R -e "install.packages(c('languageserver', 'jsonlite', 'xml2', 'rvest', 'httr', 'haven', 'googlesheets4', 'googledrive', 'rgdal','rJava', 'devtools'), dependencies=TRUE,repos='http://cran.rstudio.com/')"
+RUN TZ="Australia/Sydney" R -e 'install.packages("tidyverse")'
+
+RUN conda activate ${DEFAULT_USER} && \
+         conda install -c anaconda tensorflow-gpu=2.4.1 tensorflow-estimator=2.4.1  --quiet --yes && \
+	conda install -c conda-forge tensorboard=2.4.1 keras=2.4.3 --quiet --yes && \
+	conda install scipy==1.9.1 --yes 
+	
+RUN /opt/conda/envs/${DEFAULT_USER}/bin/pip install torch==1.12.0+cu113 torchvision==0.13.0+cu113 torchaudio==0.12.0 --extra-index-url https://download.pytorch.org/whl/cu113 
+
+RUN  echo . /opt/conda/etc/profile.d/conda.sh >>/home/${DEFAULT_USER}/.bashrc && \
+	echo conda activate DL >> /home/${DEFAULT_USER}/.bashrc && \
+	echo export RETICULATE_PYTHON=/opt/conda/envs/${DEFAULT_USER}/bin/python >> /home/${DEFAULT_USER}/.bashrc && \
+	echo export RETICULATE_PYTHON=/opt/conda/envs/${DEFAULT_USER}/bin/python >> /etc/profile && \
+	echo export RETICULATE_PYTHON=/opt/conda/envs/${DEFAULT_USER}/bin/python >> /etc/security/pam_env.conf && \
+	echo RETICULATE_PYTHON="/opt/conda/envs/${DEFAULT_USER}/bin/python" >> /home/${DEFAULT_USER}/.Renviron && \
+	source /home/${DEFAULT_USER}/.bashrc
+
+
+
+
+
+# CMD  [ "/bin/bash","-c", "/usr/lib/rstudio-server/bin/rserver --server-daemonize=0 & /opt/conda/envs/${DEFAULT_USER}/bin/jupyter notebook & /usr/bin/shiny-server & code-server"]
+ CMD ["/bin/bash", "-c",   "/usr/lib/rstudio-server/bin/rserver --server-daemonize=0 & /usr/bin/shiny-server & code-server"]
